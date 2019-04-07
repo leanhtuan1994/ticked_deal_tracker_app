@@ -1,111 +1,399 @@
 import 'package:flutter/material.dart';
+import 'package:ticked_deal_tracker_app/custom_app_bar.dart';
+import 'package:ticked_deal_tracker_app/custom_shape_clipper.dart';
+import 'package:intl/intl.dart';
 
-void main() => runApp(MyApp());
+void main() {
+  runApp(App());
+}
 
-class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
+class App extends StatefulWidget {
+  @override
+  _AppState createState() => _AppState();
+}
+
+class _AppState extends State<App> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-      ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      debugShowCheckedModeBanner: false,
+      home: HomeScreen(),
+      theme: appTheme,
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
+class HomeScreen extends StatefulWidget {
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
+class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
+      body: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
         child: Column(
-          // Column is also layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.display1,
-            ),
+            HomeScreenToPart(),
+            HomeScreenBottomPart(),
+            HomeScreenBottomPart()
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      bottomNavigationBar: CustomAppBar(),
+    );
+  }
+}
+
+Color firstColor = Color(0xFFF47D15);
+Color secondColor = Color(0xFFEF772C);
+
+ThemeData appTheme =
+    ThemeData(primaryColor: Color(0xFFF3791A), fontFamily: 'Oxygen');
+
+List<String> locations = ['Boston (BOS)', 'New York City (JFK)'];
+const TextStyle dropDownLabelStyle =
+    TextStyle(color: Colors.white, fontSize: 16.0);
+const TextStyle dropDownMenuItemStyle =
+    TextStyle(color: Colors.black, fontSize: 16.0);
+
+var viewAllStyle = TextStyle(fontSize: 14.0, color: appTheme.primaryColor);
+
+class HomeScreenToPart extends StatefulWidget {
+  @override
+  _HomeScreenToPartState createState() => _HomeScreenToPartState();
+}
+
+class _HomeScreenToPartState extends State<HomeScreenToPart> {
+  var selectedLocationIndex = 0;
+  var isFlightSelected = true;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: <Widget>[
+        ClipPath(
+            clipper: CustomShapeClipper(),
+            child: Container(
+              height: 400,
+              decoration: BoxDecoration(
+                  gradient: LinearGradient(colors: [firstColor, secondColor])),
+              child: Column(
+                children: <Widget>[
+                  SizedBox(height: 50.0),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      children: <Widget>[
+                        Icon(Icons.location_on, color: Colors.white),
+                        SizedBox(width: 16.0),
+                        PopupMenuButton(
+                          onSelected: (index) {
+                            setState(() {
+                              selectedLocationIndex = index;
+                            });
+                          },
+                          child: Row(
+                            children: <Widget>[
+                              Text(locations[selectedLocationIndex],
+                                  style: dropDownLabelStyle),
+                              Icon(
+                                Icons.keyboard_arrow_down,
+                                color: Colors.white,
+                              )
+                            ],
+                          ),
+                          itemBuilder: (BuildContext context) =>
+                              <PopupMenuItem<int>>[
+                                PopupMenuItem(
+                                  child: Text(
+                                    locations[0],
+                                    style: dropDownMenuItemStyle,
+                                  ),
+                                  value: 0,
+                                ),
+                                PopupMenuItem(
+                                  child: Text(
+                                    locations[1],
+                                    style: dropDownMenuItemStyle,
+                                  ),
+                                  value: 1,
+                                ),
+                              ],
+                        ),
+                        Spacer(),
+                        Icon(Icons.settings, color: Colors.white)
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 50.0),
+                  Text(
+                    'Where would\nyou want to go?',
+                    style: TextStyle(fontSize: 24.0, color: Colors.white),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 30.0),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 32.0),
+                    child: Material(
+                      elevation: 5.0,
+                      borderRadius: BorderRadius.all(Radius.circular(30.0)),
+                      child: TextField(
+                        controller: TextEditingController(
+                            text: locations[selectedLocationIndex]),
+                        style: dropDownMenuItemStyle,
+                        cursorColor: appTheme.primaryColor,
+                        decoration: InputDecoration(
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 32.0, vertical: 14.0),
+                            suffixIcon: Material(
+                              elevation: 2.0,
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(30.0)),
+                              child: Icon(
+                                Icons.search,
+                                color: Colors.black,
+                              ),
+                            ),
+                            border: InputBorder.none),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20.0),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: <Widget>[
+                      InkWell(
+                        child: CustomChoiceChip(
+                            Icons.flight_takeoff, "Flights", isFlightSelected),
+                        onTap: () {
+                          setState(() {
+                            isFlightSelected = true;
+                          });
+                        },
+                      ),
+                      SizedBox(width: 20.0),
+                      InkWell(
+                        child: CustomChoiceChip(
+                            Icons.hotel, "Hotels", !isFlightSelected),
+                        onTap: () {
+                          setState(() {
+                            isFlightSelected = false;
+                          });
+                        },
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            )),
+      ],
+    );
+  }
+}
+
+class CustomChoiceChip extends StatefulWidget {
+  final IconData icon;
+  final String text;
+  final bool isSelected;
+
+  CustomChoiceChip(this.icon, this.text, this.isSelected);
+
+  @override
+  _CustomChoiceChipState createState() => _CustomChoiceChipState();
+}
+
+class _CustomChoiceChipState extends State<CustomChoiceChip> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 18.0, vertical: 8.0),
+      decoration: widget.isSelected
+          ? BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.all(
+                Radius.circular(20.0),
+              ),
+            )
+          : null,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Icon(
+            widget.icon,
+            size: 20.0,
+            color: Colors.white,
+          ),
+          SizedBox(
+            width: 8.0,
+          ),
+          Text(
+            widget.text,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16.0,
+            ),
+          )
+        ],
+      ),
+    );
+  }
+}
+
+class HomeScreenBottomPart extends StatefulWidget {
+  @override
+  _HomeScreenBottomPartState createState() => _HomeScreenBottomPartState();
+}
+
+class _HomeScreenBottomPartState extends State<HomeScreenBottomPart> {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.max,
+            children: <Widget>[
+              Text('Currently Watched Items', style: dropDownMenuItemStyle),
+              Spacer(),
+              Text('VIEW ALL (12)', style: viewAllStyle)
+            ],
+          ),
+        ),
+        Container(
+          height: 240.0,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: cityCards,
+          ),
+        )
+      ],
+    );
+  }
+}
+
+List<CityCard> cityCards = [
+  CityCard(
+      "assets/images/lasvegas.jpg", "Las Vegas", "Feb 2019", "45", 4299, 2250),
+  CityCard("assets/images/athens.jpg", "Athens", "Apr 2019", "50", 9999, 4159),
+  CityCard("assets/images/sydney.jpeg", "Sydney", "Dec 2018", "40", 5999, 2399)
+];
+
+final formatCurrency = NumberFormat.simpleCurrency();
+
+class CityCard extends StatelessWidget {
+  final String imagePath, cityName, monthYear, discount;
+  final int oldPrice, newPrice;
+
+  CityCard(this.imagePath, this.cityName, this.monthYear, this.discount,
+      this.oldPrice, this.newPrice);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          ClipRRect(
+            borderRadius: BorderRadius.all(Radius.circular(10.0)),
+            child: Stack(
+              children: <Widget>[
+                Container(
+                  height: 210.0,
+                  width: 160.0,
+                  child: Image.asset(imagePath, fit: BoxFit.cover),
+                ),
+                Positioned(
+                  left: 0.0,
+                  bottom: 0.0,
+                  width: 160.0,
+                  height: 60.0,
+                  child: Container(
+                    decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                            begin: Alignment.bottomCenter,
+                            end: Alignment.topCenter,
+                            colors: [
+                          Colors.black,
+                          Colors.black.withOpacity(0.1)
+                        ])),
+                  ),
+                ),
+                Positioned(
+                  left: 10.0,
+                  bottom: 10.0,
+                  right: 10.0,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisSize: MainAxisSize.max,
+                    children: <Widget>[
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            cityName,
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                fontSize: 18.0),
+                          ),
+                          Text(
+                            monthYear,
+                            style: TextStyle(
+                                fontWeight: FontWeight.normal,
+                                color: Colors.white,
+                                fontSize: 14.0),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6.0, vertical: 2.0),
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.rectangle,
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(10.0))),
+                        child: Text('$discount%',
+                            style:
+                                TextStyle(fontSize: 14.0, color: Colors.black)),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              SizedBox(width: 5.0),
+              Text('${formatCurrency.format(newPrice)}',
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 14.0,
+                      fontWeight: FontWeight.bold)),
+              SizedBox(width: 5.0),
+              Text(
+                '(${formatCurrency.format(oldPrice)})',
+                style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 12.0,
+                    fontWeight: FontWeight.normal),
+              )
+            ],
+          )
+        ],
+      ),
     );
   }
 }
