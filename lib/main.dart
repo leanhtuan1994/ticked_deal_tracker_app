@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ticked_deal_tracker_app/custom_app_bar.dart';
 import 'package:ticked_deal_tracker_app/custom_shape_clipper.dart';
 import 'package:intl/intl.dart';
+import 'package:ticked_deal_tracker_app/flight_list.dart';
 
 void main() {
   runApp(App());
@@ -50,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
 Color firstColor = Color(0xFFF47D15);
 Color secondColor = Color(0xFFEF772C);
 
-ThemeData appTheme =
+ThemeData appTheme = 
     ThemeData(primaryColor: Color(0xFFF3791A), fontFamily: 'Oxygen');
 
 List<String> locations = ['Boston (BOS)', 'New York City (JFK)'];
@@ -82,7 +83,7 @@ class _HomeScreenToPartState extends State<HomeScreenToPart> {
                   gradient: LinearGradient(colors: [firstColor, secondColor])),
               child: Column(
                 children: <Widget>[
-                  SizedBox(height: 50.0),
+                  SizedBox(height: 30.0),
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Row(
@@ -152,9 +153,16 @@ class _HomeScreenToPartState extends State<HomeScreenToPart> {
                               elevation: 2.0,
                               borderRadius:
                                   BorderRadius.all(Radius.circular(30.0)),
-                              child: Icon(
-                                Icons.search,
-                                color: Colors.black,
+                              child: InkWell(
+                                child: Icon(
+                                  Icons.search,
+                                  color: Colors.black,
+                                ),
+                                onTap: (){
+                                  Navigator.push(context, MaterialPageRoute(
+                                    builder: (context) => FlightListingScreen()
+                                  ));
+                                },
                               ),
                             ),
                             border: InputBorder.none),
