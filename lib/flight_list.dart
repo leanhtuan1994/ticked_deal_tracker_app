@@ -6,12 +6,20 @@ final Color discountBackgroundColor = Color(0xFFFFE08D);
 final Color flightBorderColor = Color(0xFFE6E6E6);
 final Color chipBackgroundColor = Color(0xFFF6F6F6);
 
-class FlightListingScreen extends StatefulWidget {
+class InheritedFlightListing extends InheritedWidget {
+  final String toLocation, fromLocation;
+
+  InheritedFlightListing({this.fromLocation, this.toLocation, Widget child})
+      : super(child: child);
+
   @override
-  _FlightListingScreenState createState() => _FlightListingScreenState();
+  bool updateShouldNotify(InheritedWidget oldWidget) => true;
+
+  static InheritedFlightListing of(BuildContext context) =>
+      context.inheritFromWidgetOfExactType(InheritedFlightListing);
 }
 
-class _FlightListingScreenState extends State<FlightListingScreen> {
+class FlightListingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,17 +43,12 @@ class _FlightListingScreenState extends State<FlightListingScreen> {
               FlightListingBottomPart()
             ],
           ),
-        )
-    );
+        ));
   }
 }
 
-class FlightListTopPart extends StatefulWidget {
-  @override
-  _FlightListTopPartState createState() => _FlightListTopPartState();
-}
+class FlightListTopPart extends StatelessWidget {
 
-class _FlightListTopPartState extends State<FlightListTopPart> {
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -64,8 +67,7 @@ class _FlightListTopPartState extends State<FlightListTopPart> {
             SizedBox(height: 20.0),
             Card(
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(10.0))
-              ),
+                  borderRadius: BorderRadius.all(Radius.circular(10.0))),
               margin: EdgeInsets.symmetric(horizontal: 16.0),
               elevation: 5.0,
               child: Container(
@@ -80,7 +82,7 @@ class _FlightListTopPartState extends State<FlightListTopPart> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Text(
-                            'Boston (BOS)',
+                            '${InheritedFlightListing.of(context).fromLocation}',
                             style: TextStyle(fontSize: 16.0),
                           ),
                           Divider(
@@ -88,20 +90,18 @@ class _FlightListTopPartState extends State<FlightListTopPart> {
                             height: 20.0,
                           ),
                           Text(
-                            'New York City (JFK)',
-                            style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                          ),                         
+                            '${InheritedFlightListing.of(context).toLocation}',
+                            style: TextStyle(
+                                fontSize: 16.0, fontWeight: FontWeight.bold),
+                          ),
                         ],
                       ),
                     ),
                     Spacer(),
                     Expanded(
                       flex: 1,
-                      child: Icon(
-                        Icons.import_export,
-                        color: Colors.black,
-                        size: 32.0
-                      ),
+                      child: Icon(Icons.import_export,
+                          color: Colors.black, size: 32.0),
                     )
                   ],
                 ),
@@ -109,16 +109,15 @@ class _FlightListTopPartState extends State<FlightListTopPart> {
             ),
           ],
         )
-
       ],
     );
   }
 }
 
-
 class FlightListingBottomPart extends StatefulWidget {
   @override
-  _FlightListingBottomPartState createState() => _FlightListingBottomPartState();
+  _FlightListingBottomPartState createState() =>
+      _FlightListingBottomPartState();
 }
 
 class _FlightListingBottomPartState extends State<FlightListingBottomPart> {
@@ -130,8 +129,8 @@ class _FlightListingBottomPartState extends State<FlightListingBottomPart> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
-              'Best Deals for Next 6 Months',
-              style: dropDownMenuItemStyle,
+            'Best Deals for Next 6 Months',
+            style: dropDownMenuItemStyle,
           ),
           SizedBox(height: 10.0),
           ListView(
@@ -215,7 +214,10 @@ class FlightCard extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
               child: Text(
                 '55%',
-                style: TextStyle(color: appTheme.primaryColor, fontSize: 14.0, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    color: appTheme.primaryColor,
+                    fontSize: 14.0,
+                    fontWeight: FontWeight.bold),
               ),
               decoration: BoxDecoration(
                 color: discountBackgroundColor,
