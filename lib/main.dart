@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ticked_deal_tracker_app/custom_app_bar.dart';
 import 'package:ticked_deal_tracker_app/custom_shape_clipper.dart';
 import 'package:intl/intl.dart';
 import 'package:ticked_deal_tracker_app/flight_list.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 void main() {
   runApp(App());
@@ -51,10 +53,11 @@ class _HomeScreenState extends State<HomeScreen> {
 Color firstColor = Color(0xFFF47D15);
 Color secondColor = Color(0xFFEF772C);
 
-ThemeData appTheme = 
+ThemeData appTheme =
     ThemeData(primaryColor: Color(0xFFF3791A), fontFamily: 'Oxygen');
 
-List<String> locations = ['Boston (BOS)', 'New York City (JFK)'];
+List<String> locations = List();
+
 const TextStyle dropDownLabelStyle =
     TextStyle(color: Colors.white, fontSize: 16.0);
 const TextStyle dropDownMenuItemStyle =
@@ -86,50 +89,57 @@ class _HomeScreenToPartState extends State<HomeScreenToPart> {
               child: Column(
                 children: <Widget>[
                   SizedBox(height: 30.0),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: <Widget>[
-                        Icon(Icons.location_on, color: Colors.white),
-                        SizedBox(width: 16.0),
-                        PopupMenuButton(
-                          onSelected: (index) {
-                            setState(() {
-                              selectedLocationIndex = index;
-                            });
-                          },
-                          child: Row(
-                            children: <Widget>[
-                              Text(locations[selectedLocationIndex],
-                                  style: dropDownLabelStyle),
-                              Icon(
-                                Icons.keyboard_arrow_down,
-                                color: Colors.white,
-                              )
-                            ],
-                          ),
-                          itemBuilder: (BuildContext context) =>
-                              <PopupMenuItem<int>>[
-                                PopupMenuItem(
-                                  child: Text(
-                                    locations[0],
-                                    style: dropDownMenuItemStyle,
-                                  ),
-                                  value: 0,
+                  StreamBuilder(
+                    stream:
+                        Firestore.instance.collection('locations').snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                      addLocations(context, snapshot.data.documents);
+
+                        return !snapshot.hasData
+                            ? Container()
+                            : Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Row(
+                                  children: <Widget>[
+                                    Icon(
+                                      Icons.location_on,
+                                      color: Colors.white,
+                                    ),
+                                    SizedBox(
+                                      width: 16.0,
+                                    ),
+                                    PopupMenuButton(
+                                      onSelected: (index) {
+                                        setState(() {
+                                          selectedLocationIndex = index;
+                                        });
+                                      },
+                                      child: Row(
+                                        children: <Widget>[
+                                          Text(
+                                            locations[selectedLocationIndex],
+                                            style: dropDownLabelStyle,
+                                          ),
+                                          Icon(
+                                            Icons.keyboard_arrow_down,
+                                            color: Colors.white,
+                                          )
+                                        ],
+                                      ),
+                                      itemBuilder: (BuildContext context) =>
+                                          _buildPopupMenuItem(),
+                                    ),
+                                    Spacer(),
+                                    Icon(
+                                      Icons.settings,
+                                      color: Colors.white,
+                                    ),
+                                  ],
                                 ),
-                                PopupMenuItem(
-                                  child: Text(
-                                    locations[1],
-                                    style: dropDownMenuItemStyle,
-                                  ),
-                                  value: 1,
-                                ),
-                              ],
-                        ),
-                        Spacer(),
-                        Icon(Icons.settings, color: Colors.white)
-                      ],
-                    ),
+                              );
+                      }
+                    },
                   ),
                   SizedBox(height: 50.0),
                   Text(
@@ -148,7 +158,7 @@ class _HomeScreenToPartState extends State<HomeScreenToPart> {
                         style: dropDownMenuItemStyle,
                         cursorColor: appTheme.primaryColor,
                         decoration: InputDecoration(
-                          hintText: 'Ho Chi Minh City',
+                            hintText: 'Ho Chi Minh City',
                             contentPadding: EdgeInsets.symmetric(
                                 horizontal: 32.0, vertical: 14.0),
                             suffixIcon: Material(
@@ -160,14 +170,18 @@ class _HomeScreenToPartState extends State<HomeScreenToPart> {
                                   Icons.search,
                                   color: Colors.black,
                                 ),
-                                onTap: (){
-                                  Navigator.push(context, MaterialPageRoute(
-                                    builder: (context) => InheritedFlightListing(
-                                      fromLocation: locations[selectedLocationIndex],
-                                      toLocation: _searchFieldController.text,
-                                      child: FlightListingScreen(),
-                                    )
-                                  ));
+                                onTap: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              InheritedFlightListing(
+                                                fromLocation: locations[
+                                                    selectedLocationIndex],
+                                                toLocation:
+                                                    _searchFieldController.text,
+                                                child: FlightListingScreen(),
+                                              )));
                                 },
                               ),
                             ),
@@ -206,6 +220,40 @@ class _HomeScreenToPartState extends State<HomeScreenToPart> {
             )),
       ],
     );
+  }
+
+  List<PopupMenuItem<int>> _buildPopupMenuItem() {
+    List<PopupMenuItem<int>> popupMenuItems = List();
+    for (int i = 0; i < locations.length; i++) {
+      popupMenuItems.add(PopupMenuItem(
+        child: Text(
+          locations[i],
+          style: dropDownMenuItemStyle,
+        ),
+        value: i,
+      ));
+    }
+
+    return popupMenuItems;
+  }
+}
+
+class Location {
+  final String name;
+
+  Location.fromMap(Map<String, dynamic> map)
+      : assert(map['name'] != null),
+        name = map['name'];
+
+  Location.fromSnapshot(DocumentSnapshot snapshot)
+      : this.fromMap(snapshot.data);
+}
+
+addLocations(BuildContext context, List<DocumentSnapshot> snapshots) {
+  locations.clear();
+  for (int i = 0; i < snapshots.length; i++) {
+    final Location location = Location.fromSnapshot(snapshots[i]);
+    locations.add(location.name);
   }
 }
 
@@ -282,31 +330,58 @@ class _HomeScreenBottomPartState extends State<HomeScreenBottomPart> {
         ),
         Container(
           height: 240.0,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: cityCards,
-          ),
-        )
+          child: StreamBuilder(
+              stream: Firestore.instance
+                  .collection('cities')
+                  .orderBy('newPrice')
+                  .snapshots(),
+              builder: (context, snapshot) {
+                print('${snapshot.hasData}');
+                return !snapshot.hasData
+                    ? Center(child: CircularProgressIndicator())
+                    : _buildCitiesList(context, snapshot.data.documents);
+              }),
+        ),
       ],
     );
   }
 }
 
-List<CityCard> cityCards = [
-  CityCard(
-      "assets/images/lasvegas.jpg", "Las Vegas", "Feb 2019", "45", 4299, 2250),
-  CityCard("assets/images/athens.jpg", "Athens", "Apr 2019", "50", 9999, 4159),
-  CityCard("assets/images/sydney.jpeg", "Sydney", "Dec 2018", "40", 5999, 2399)
-];
+class City {
+  final String imagePath, cityName, monthYear, discount;
+  final int oldPrice, newPrice;
+
+  City.fromMap(Map<String, dynamic> map)
+      : assert(map['cityName'] != null),
+        assert(map['monthYear'] != null),
+        assert(map['discount'] != null),
+        assert(map['imagePath'] != null),
+        imagePath = map['imagePath'],
+        cityName = map['cityName'],
+        monthYear = map['monthYear'],
+        discount = map['discount'],
+        oldPrice = map['oldPrice'],
+        newPrice = map['newPrice'];
+
+  City.fromSnapshot(DocumentSnapshot snapshot) : this.fromMap(snapshot.data);
+}
+
+Widget _buildCitiesList(
+    BuildContext context, List<DocumentSnapshot> snapshots) {
+  return ListView.builder(
+      itemCount: snapshots.length,
+      scrollDirection: Axis.horizontal,
+      itemBuilder: (context, index) {
+        return CityCard(city: City.fromSnapshot(snapshots[index]));
+      });
+}
 
 final formatCurrency = NumberFormat.simpleCurrency();
 
 class CityCard extends StatelessWidget {
-  final String imagePath, cityName, monthYear, discount;
-  final int oldPrice, newPrice;
+  final City city;
 
-  CityCard(this.imagePath, this.cityName, this.monthYear, this.discount,
-      this.oldPrice, this.newPrice);
+  CityCard({this.city});
 
   @override
   Widget build(BuildContext context) {
@@ -317,13 +392,21 @@ class CityCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           ClipRRect(
-            borderRadius: BorderRadius.all(Radius.circular(10.0)),
+            borderRadius: BorderRadius.all(
+              Radius.circular(10.0),
+            ),
             child: Stack(
               children: <Widget>[
                 Container(
                   height: 210.0,
                   width: 160.0,
-                  child: Image.asset(imagePath, fit: BoxFit.cover),
+                  child: CachedNetworkImage(
+                    imageUrl: '${city.imagePath}',
+                    fit: BoxFit.cover,
+                    fadeInDuration: Duration(milliseconds: 500),
+                    fadeInCurve: Curves.easeIn,
+                    placeholder: (context, url) => Center(child: CircularProgressIndicator()),
+                  ),
                 ),
                 Positioned(
                   left: 0.0,
@@ -337,7 +420,7 @@ class CityCard extends StatelessWidget {
                             end: Alignment.topCenter,
                             colors: [
                           Colors.black,
-                          Colors.black.withOpacity(0.1)
+                          Colors.black.withOpacity(0.1),
                         ])),
                   ),
                 ),
@@ -346,21 +429,21 @@ class CityCard extends StatelessWidget {
                   bottom: 10.0,
                   right: 10.0,
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Text(
-                            cityName,
+                            '${city.cityName}',
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                                 fontSize: 18.0),
                           ),
                           Text(
-                            monthYear,
+                            '${city.monthYear}',
                             style: TextStyle(
                                 fontWeight: FontWeight.normal,
                                 color: Colors.white,
@@ -369,20 +452,23 @@ class CityCard extends StatelessWidget {
                         ],
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(
+                        padding: EdgeInsets.symmetric(
                             horizontal: 6.0, vertical: 2.0),
                         decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.rectangle,
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(10.0))),
-                        child: Text('$discount%',
-                            style:
-                                TextStyle(fontSize: 14.0, color: Colors.black)),
+                          color: Colors.white,
+                          shape: BoxShape.rectangle,
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(10.0),
+                          ),
+                        ),
+                        child: Text(
+                          '${city.discount}%',
+                          style: TextStyle(fontSize: 14.0, color: Colors.black),
+                        ),
                       ),
                     ],
                   ),
-                ),
+                )
               ],
             ),
           ),
@@ -390,20 +476,26 @@ class CityCard extends StatelessWidget {
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.start,
             children: <Widget>[
-              SizedBox(width: 5.0),
-              Text('${formatCurrency.format(newPrice)}',
-                  style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 14.0,
-                      fontWeight: FontWeight.bold)),
-              SizedBox(width: 5.0),
+              SizedBox(
+                width: 5.0,
+              ),
               Text(
-                '(${formatCurrency.format(oldPrice)})',
+                '${formatCurrency.format(city.newPrice)}',
+                style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14.0),
+              ),
+              SizedBox(
+                width: 5.0,
+              ),
+              Text(
+                "(${formatCurrency.format(city.oldPrice)})",
                 style: TextStyle(
                     color: Colors.grey,
-                    fontSize: 12.0,
-                    fontWeight: FontWeight.normal),
-              )
+                    fontWeight: FontWeight.normal,
+                    fontSize: 12.0),
+              ),
             ],
           )
         ],

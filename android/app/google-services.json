@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "118339294628",
+    "firebase_url": "https://ticked-app.firebaseio.com",
+    "project_id": "ticked-app",
+    "storage_bucket": "ticked-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:118339294628:android:f056282e206660e4",
+        "android_client_info": {
+          "package_name": "com.code.station.ticked_deal_tracker_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "118339294628-kj527cr4u4qh3e1pvdjk0g39vddqeah2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDStwSnaUKeR77UhMq9gfCi2lyext2-Sy4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "118339294628-kj527cr4u4qh3e1pvdjk0g39vddqeah2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
